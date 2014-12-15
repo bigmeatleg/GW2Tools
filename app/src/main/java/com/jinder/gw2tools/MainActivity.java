@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.ListAdapter;
@@ -47,7 +48,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity{
     private static final String db_filename = "gw2.sqlite";
     private static final String LOG_DBNAME = "DATABASE";
     private static final int db_version = 1;
@@ -175,6 +176,7 @@ public class MainActivity extends Activity {
         adGW2 = new adList();
         rows = (ListView) findViewById(R.id.lvTime);
         rows.setAdapter(adGW2);
+        rows.setOnItemClickListener(new ListViewItemClick());
 
         final Handler timerHandler = new Handler();
         Runnable reloadList = new Runnable() {
@@ -304,6 +306,18 @@ public class MainActivity extends Activity {
         @Override
         public int getCount() {
             return 14;
+        }
+    }
+
+    public class ListViewItemClick implements AdapterView.OnItemClickListener {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            if(position >0) {
+                int nIndex = tIndex + position;
+                String strTitle = aryEvents.get(nIndex).getStrTW();
+                Log.d("ITEMSELECT", strTitle);
+            }
         }
     }
 
