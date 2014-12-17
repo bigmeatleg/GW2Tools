@@ -3,6 +3,7 @@ package com.jinder.gw2tools;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -32,6 +33,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
@@ -59,11 +62,13 @@ public class MainActivity extends Activity{
     ListView                rows;
     int                     tIndex;
     int                     nTotalRecords;
-
+    int[]                   aryEventDone = new int[20];
     Runnable                procExchange;
     Handler                 timerExchange;
     float                   nCoinsChange;
-
+    JSONObject              jObject;
+    String                  strEventDate;
+    Context                 context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +77,11 @@ public class MainActivity extends Activity{
 
         CopyDatabaseIfNeed();
 
+        LoadPreference();
+
         Init();
 
+        context = this;
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8)
         {
@@ -81,6 +89,50 @@ public class MainActivity extends Activity{
                     .permitAll().build();
             StrictMode.setThreadPolicy(policy);
             StartGetExchange();
+        }
+    }
+
+    private void LoadPreference() {
+        JSONSharedPreference jsonSetting = new JSONSharedPreference();
+        strEventDate = getUTCDate();
+        try{
+            jObject = jsonSetting.loadJSONObject(this, "GW2Tools", "EVENTS");
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        if(jObject.isNull("DATE")){
+            EventJson_Init();
+        } else {
+            String nowDate = getUTCDate();
+
+            try{
+               if(jObject.get("DATE").toString().equals(nowDate)){
+                   JSONArray aryJson = jObject.getJSONArray("EVENTS");
+                   for(int i = 0; i < aryJson.length(); i ++){
+                       aryEventDone[i] = aryJson.getInt(i);
+                   }
+               } else {
+                   EventJson_Init();
+               }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void EventJson_Init(){
+        try{
+            jObject.put("DATE", strEventDate);
+            JSONArray newEventDone = new JSONArray();
+            for(int i =0; i < aryEventDone.length; i ++){
+                aryEventDone[i] = 0;
+                newEventDone.put(i, 0);
+            }
+            jObject.put("EVENTS", newEventDone);
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -150,7 +202,7 @@ public class MainActivity extends Activity{
         db.OpenDB();
 
 
-        String sql = "SELECT l._title, t._time, l._zone, l._area, l._link, l._tw, l._level FROM eventtime t " +
+        String sql = "SELECT l._title, t._time, l._zone, l._area, l._link, l._tw, l._level, l._index FROM eventtime t " +
                 "LEFT OUTER JOIN eventlist l ON l._index=t._index ORDER BY t._time";
         Cursor rs = db.getRecordBySQL(sql, new String[]{});
 
@@ -158,7 +210,7 @@ public class MainActivity extends Activity{
             while(rs.moveToNext()){
                 String strTime = UTC2LocalTime(rs.getString(1));
                 long nTime = getTime(rs.getString(1));
-                GW2Event item = new GW2Event(rs.getString(0), rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
+                GW2Event item = new GW2Event(rs.getString(0), rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getInt(7));
                 item.setnTimeValue(nTime);
                 item.setEndTime(nTime + (60*15*1000));
                 aryEvents.add(item);
@@ -189,6 +241,13 @@ public class MainActivity extends Activity{
 
         };
         reloadList.run();
+    }
+
+    public String getUTCDate(){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return sdf.format(new Date());
     }
 
     public String getUTCTime(){
@@ -282,11 +341,31 @@ public class MainActivity extends Activity{
                 tIndex = 0;
             }
 
+            if(nPosIndex == position){
+                strEventDate = getUTCDate();
+                EventJson_Init();
+            }
+
+            String strTimeRun = DiffTimeCounter(nNowTimeValue, aryEvents.get(nPosIndex).getnTimeValue());
+            int nValue = aryEventDone[aryEvents.get(nPosIndex).getnId()];
+
             TextView m_title  = (TextView) itemView.findViewById(R.id.txtTitle);
-            m_title.setText(aryEvents.get(nPosIndex).getStrTW());
+            if(nValue == 1){
+                m_title.setText(aryEvents.get(nPosIndex).getStrTW() + "-已完成");
+            } else {
+                m_title.setText(aryEvents.get(nPosIndex).getStrTW());
+            }
+
+            if(strTimeRun == "進行中"){
+                itemView.setBackgroundColor(Color.RED);
+            } else if(nValue == 1){
+                itemView.setBackgroundColor(Color.BLUE);
+            } else {
+                itemView.setBackgroundColor(Color.WHITE);
+            }
 
             TextView m_time = (TextView) itemView.findViewById(R.id.txtTime);
-            m_time.setText(DiffTimeCounter(nNowTimeValue, aryEvents.get(nPosIndex).getnTimeValue()));
+            m_time.setText(strTimeRun);
 
             TextView m_zone = (TextView) itemView.findViewById(R.id.txtZone);
             m_zone.setText(aryEvents.get(nPosIndex).getStrZone());
@@ -309,16 +388,42 @@ public class MainActivity extends Activity{
         }
     }
 
-    public class ListViewItemClick implements AdapterView.OnItemClickListener {
+    public class ListViewItemClick implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            if(position >0) {
-                int nIndex = tIndex + position;
-                String strTitle = aryEvents.get(nIndex).getStrTW();
-                Log.d("ITEMSELECT", strTitle);
-            }
+            int nIndex = tIndex + position;
+
+            int nID = aryEvents.get(nIndex).getnId();
+            int nValue = aryEventDone[nID];
+            nValue ^= 0x01;
+            aryEventDone[nID] = nValue;
+
+            JSONObject newJson = parseSavingJson();
+            JSONSharedPreference saveSetting = new JSONSharedPreference();
+            saveSetting.saveJsonObject(context, "GW2Tools", "EVENTS", newJson);
         }
+
+        @Override
+        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            return false;
+        }
+    }
+
+    public JSONObject parseSavingJson(){
+        JSONObject retObject = new JSONObject();
+        try{
+            retObject.put("DATE", strEventDate);
+            JSONArray jEventDone = new JSONArray();
+            for(int i = 0; i < aryEventDone.length; i ++){
+                jEventDone.put(i, aryEventDone[i]);
+            }
+            retObject.put("EVENTS", jEventDone);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return retObject;
     }
 
     public long getNowTimeValue(){
