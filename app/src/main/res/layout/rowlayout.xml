@@ -8,7 +8,9 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="40">
+        android:layout_weight="40"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp">
 
         <TextView
             android:layout_width="fill_parent"
@@ -17,7 +19,8 @@
             android:text="Title"
             android:id="@+id/txtTitle"
             android:layout_gravity="left"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginLeft="10dp" />
 
         <TextView
             android:layout_width="fill_parent"
@@ -25,7 +28,8 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Zone"
             android:id="@+id/txtZone"
-            android:layout_gravity="left" />
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp" />
 
         <TextView
             android:layout_width="fill_parent"
@@ -33,7 +37,8 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Level"
             android:id="@+id/txtLevel"
-            android:layout_gravity="left" />
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -42,7 +47,8 @@
         android:layout_height="fill_parent"
         android:layout_weight="60"
         android:layout_gravity="left"
-        >
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp">
 
         <TextView
             android:layout_width="fill_parent"
@@ -51,7 +57,8 @@
             android:id="@+id/txtTime"
             android:layout_gravity="right"
             android:gravity="right"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginRight="10dp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -61,7 +68,7 @@
             android:id="@+id/txtArea"
             android:layout_gravity="right"
             android:gravity="right"
-            />
+            android:layout_marginRight="10dp" />
 
         <TextView
             android:layout_width="fill_parent"
@@ -71,6 +78,6 @@
             android:id="@+id/txtLink"
             android:layout_gravity="right"
             android:gravity="right"
-            />
+            android:layout_marginRight="10dp" />
     </LinearLayout>
 </LinearLayout>
