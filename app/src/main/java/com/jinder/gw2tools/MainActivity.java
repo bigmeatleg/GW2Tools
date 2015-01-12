@@ -150,7 +150,7 @@ public class MainActivity extends Activity{
     }
 
     private void UpdateExchange(){
-        nCoinsChange = 650000;
+        nCoinsChange = 600000;
         ParseCoin(nCoinsChange);
         String url = "https://api.guildwars2.com/v2/commerce/exchange/coins?quantity=" + nCoinsChange;
         try{
@@ -185,6 +185,7 @@ public class MainActivity extends Activity{
 
     private void ExchangeParse(String jsondata){
         try {
+            Log.e("GEM_EXCHANGE", "exchange parse.");
             JSONObject json = new JSONObject(jsondata);
             String strGem = json.getString("quantity");
 
@@ -240,6 +241,15 @@ public class MainActivity extends Activity{
 
 
         };
+
+        TextView tvGem = (TextView) findViewById(R.id.textView2);
+        tvGem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               Log.e("GEM_EXCHANGE", "gem view click");
+                UpdateExchange();
+            }
+        });
         reloadList.run();
     }
 
@@ -499,6 +509,7 @@ public class MainActivity extends Activity{
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Log.e("MENU", "menu Settings");
             return true;
         }
 

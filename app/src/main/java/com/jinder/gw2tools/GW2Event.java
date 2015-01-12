@@ -11,6 +11,7 @@ public class GW2Event {
     private String strLink;
     private String strTW;
     private String strLevel;
+    private int     nId;
     private long    nTimeValue;
     private long    EndTime;
 
@@ -23,7 +24,11 @@ public class GW2Event {
         EndTime = endTime;
     }
 
-    public GW2Event(String strTitle, String strTimeStart, String strZone, String strArea, String strLink, String strTW, String strLevel) {
+    public int getnId() {
+        return nId;
+    }
+
+    public GW2Event(String strTitle, String strTimeStart, String strZone, String strArea, String strLink, String strTW, String strLevel, int nId) {
         this.strTitle = strTitle;
         this.strTimeStart = strTimeStart;
         this.strZone = strZone;
@@ -31,6 +36,7 @@ public class GW2Event {
         this.strLink = strLink;
         this.strTW = strTW;
         this.strLevel = strLevel;
+        this.nId = nId;
     }
 
     public String getStrTitle() {
